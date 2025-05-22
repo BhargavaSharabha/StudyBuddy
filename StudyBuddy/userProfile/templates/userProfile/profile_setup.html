@@ -171,75 +171,30 @@
           <h1 class="page-title center-align">Set Up Your Profile</h1>
           <p class="page-subtitle center-align">Select subjects you're interested in to find relevant study groups</p>
           
-          <form>
+          <form method="post">
+            {% csrf_token %}
             <div class="subjects-section">
               <h2 class="center-align" style="font-size: 1.5rem; margin-bottom: 30px;">Your Subjects</h2>
               
               <div class="subject-chips" role="group" aria-label="Select your subjects">
-                <!-- Subject chips - these would normally be generated from backend data -->
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Mathematics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Physics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Chemistry</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Biology</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Computer Science</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">History</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">English Literature</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Psychology</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Economics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Business Studies</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Art & Design</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Geography</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Foreign Languages</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Music</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Philosophy</div>
+                <!-- Subject chips from database -->
+                {% for subject in subjects %}
+                <div class="chip{% if subject.id in selected_subject_ids %} selected{% endif %}" 
+                     tabindex="0" 
+                     role="checkbox" 
+                     aria-checked="{% if subject.id in selected_subject_ids %}true{% else %}false{% endif %}" 
+                     data-subject-id="{{ subject.id }}">
+                  {{ subject.name }}
+                </div>
+                {% empty %}
+                <p>No subjects available. Please add subjects through the admin interface.</p>
+                {% endfor %}
               </div>
             </div>
             
-            <!-- Alternative implementation using checkboxes -->
-            <div style="display:none;">
-              <p style="font-size: 1.2rem; margin-top: 30px;">Or select from list:</p>
-              <div class="row">
-                <div class="col s12 m6">
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>Mathematics</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>Physics</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>Chemistry</span>
-                    </label>
-                  </p>
-                </div>
-                <div class="col s12 m6">
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>Biology</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>Computer Science</span>
-                    </label>
-                  </p>
-                  <p>
-                    <label>
-                      <input type="checkbox" class="filled-in" />
-                      <span>History</span>
-                    </label>
-                  </p>
-                </div>
-              </div>
+            <!-- Hidden inputs to store selected subjects -->
+            <div id="selected-subjects-container">
+              <!-- Will be populated with JavaScript -->
             </div>
             
             <div class="submit-section">
@@ -262,5 +217,52 @@
       </div>
     </div>
   </footer>
+
+  <!-- jQuery (required for Materialize) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  
+  <script>
+    $(document).ready(function() {
+      // Initialize mobile navigation
+      $('.sidenav').sidenav();
+      
+      // Handle chip selection
+      $('.chip').click(function() {
+        $(this).toggleClass('selected');
+        
+        // Update aria-checked attribute for accessibility
+        var isSelected = $(this).hasClass('selected');
+        $(this).attr('aria-checked', isSelected);
+        
+        // Update hidden inputs
+        updateSelectedSubjects();
+      });
+      
+      // Allow keyboard selection with space or enter
+      $('.chip').keypress(function(e) {
+        if (e.which === 13 || e.which === 32) { // Enter or Space
+          e.preventDefault();
+          $(this).click();
+        }
+      });
+      
+      // Function to update hidden inputs for form submission
+      function updateSelectedSubjects() {
+        // Clear previous hidden inputs
+        $('#selected-subjects-container').empty();
+        
+        // Add a hidden input for each selected subject
+        $('.chip.selected').each(function() {
+          var subjectId = $(this).data('subject-id');
+          $('#selected-subjects-container').append(
+            '<input type="hidden" name="selected_subjects[]" value="' + subjectId + '">'
+          );
+        });
+      }
+    });
+  </script>
 </body>
 </html>

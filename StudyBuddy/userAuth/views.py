@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.conf import settings
@@ -14,7 +14,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             auth_login(request, user)
-            return redirect('home')  # Change 'home' to your home page name
+            return redirect('dashboard')  # Redirect to dashboard
         else:
             messages.error(request, 'Invalid username or password.')
     else:
@@ -27,9 +27,15 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             auth_login(request, user)
-            return redirect('home')  # Change 'home' to your home page name
+            return redirect('profile_setup')  # Redirect to profile setup
         else:
             messages.error(request, 'Registration failed. Please check the form.')
     else:
         form = CustomUserCreationForm()
     return render(request, 'userAuth/register.html', {'form': form})
+
+def logout_view(request):
+    auth_logout(request)
+    messages.success(request, 'You have been successfully logged out.')
+    return redirect('home')  # Redirect to home page after logout
+

@@ -210,29 +210,29 @@
         <div class="nav-wrapper container">
           <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
           <ul class="right hide-on-med-and-down">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
               <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li>
+            </a></li> {% endcomment %}
           </ul>
           
           <!-- User dropdown -->
-          <ul id="user-dropdown" class="dropdown-content">
-            <li><a href="profile.html"><i class="material-icons">person</i>Profile</a></li>
-            <li><a href="#"><i class="material-icons">settings</i>Settings</a></li>
+          {% comment %} <ul id="user-dropdown" class="dropdown-content">
+            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul>
+            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
+          </ul> {% endcomment %}
           
           <!-- Mobile navigation -->
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li><a href="profile.html">My Profile</a></li>
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
       </nav>
@@ -248,7 +248,7 @@
           <p>Browse and join study groups or create your own to connect with fellow students</p>
         </div>
         <div class="col s12 m4 hide-on-small-only" style="text-align: right;">
-          <a href="create_group.html" class="btn waves-effect waves-light">Create Group</a>
+          <a href="{% url 'create_group' %}" class="btn waves-effect waves-light">Create Group</a>
         </div>
       </div>
     </div>
@@ -257,198 +257,80 @@
     <div class="filter-bar">
       <div class="row">
         <div class="col s12 m6">
-          <div class="input-field">
-            <select id="subject-filter" aria-label="Filter by subject">
-              <option value="" disabled selected>Filter by subject</option>
-              <option value="1">Mathematics</option>
-              <option value="2">Physics</option>
-              <option value="3">Chemistry</option>
-              <option value="4">Biology</option>
-              <option value="5">Computer Science</option>
-              <option value="6">History</option>
-              <option value="7">English Literature</option>
-              <option value="8">Psychology</option>
-            </select>
-            <label for="subject-filter">Subject</label>
-          </div>
+          <form action="{% url 'dashboard' %}" method="GET" id="filter-form">
+            <div class="input-field">
+              <select id="subject-filter" name="subject" aria-label="Filter by subject" onchange="document.getElementById('filter-form').submit()">
+                <option value="" {% if not selected_subject %}selected{% endif %}>All subjects</option>
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}" {% if selected_subject == subject.id|stringformat:"s" %}selected{% endif %}>
+                  {{ subject.name }}
+                </option>
+                {% endfor %}
+              </select>
+              <label for="subject-filter">Subject</label>
+            </div>
+          </form>
         </div>
         <div class="col s12 m6">
-          <div class="input-field">
-            <input id="search" type="text" placeholder="Search groups...">
-            <label for="search">Search</label>
-          </div>
+          <form action="{% url 'dashboard' %}" method="GET">
+            <div class="input-field">
+              <input id="search" name="search" type="text" placeholder="Search groups..." value="{{ search_query|default:'' }}">
+              <label for="search">Search</label>
+              <button type="submit" class="btn waves-effect waves-light" style="display: none;">Search</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
 
     <!-- Group cards -->
     <div class="row">
-      <!-- Group 1 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">Calculus Study Group</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>Mathematics</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>4/8 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Tuesdays, 4:00 PM</span>
-            </div>
-          </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Group 2 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">Python Programming</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>Computer Science</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>6/10 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Fridays, 5:30 PM</span>
+      {% if study_groups %}
+        {% for group in study_groups %}
+          <div class="col s12 m6 l4">
+            <div class="card group-card">
+              <div class="card-content">
+                <span class="card-title">{{ group.title }}</span>
+                
+                <div class="group-detail">
+                  <i class="material-icons">school</i>
+                  <span>{{ group.subject.name }}</span>
+                </div>
+                
+                <div class="group-detail">
+                  <i class="material-icons">group</i>
+                  <span>{{ group.current_member_count }}/{{ group.max_members }} members</span>
+                </div>
+                
+                <div class="group-detail">
+                  <i class="material-icons">event</i>
+                  <span>{{ group.meeting_date|date:"l" }}s, {{ group.meeting_time|time:"g:i A" }}</span>
+                </div>
+              </div>
+              <div class="card-action">
+                <a href="{% url 'group_details' group_id=group.id %}" class="btn waves-effect waves-light">
+                  {% if request.user in group.members.all %}
+                    View Group
+                  {% else %}
+                    Join Group
+                  {% endif %}
+                </a>
+              </div>
             </div>
           </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
+        {% endfor %}
+      {% else %}
+        <div class="col s12">
+          <div class="card-panel">
+            <p class="center-align">No study groups found. {% if selected_subject or search_query %}Try adjusting your filters or <a href="{% url 'dashboard' %}">view all groups</a>.{% else %}Be the first to <a href="{% url 'create_group' %}">create a group</a>!{% endif %}</p>
           </div>
         </div>
-      </div>
-      
-      <!-- Group 3 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">Organic Chemistry</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>Chemistry</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>3/6 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Mondays, 6:00 PM</span>
-            </div>
-          </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Group 4 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">World History Group</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>History</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>5/8 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Wednesdays, 3:30 PM</span>
-            </div>
-          </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Group 5 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">Molecular Biology</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>Biology</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>2/5 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Thursdays, 5:00 PM</span>
-            </div>
-          </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Group 6 -->
-      <div class="col s12 m6 l4">
-        <div class="card group-card">
-          <div class="card-content">
-            <span class="card-title">Shakespeare Studies</span>
-            
-            <div class="group-detail">
-              <i class="material-icons">school</i>
-              <span>English Literature</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">group</i>
-              <span>4/6 members</span>
-            </div>
-            
-            <div class="group-detail">
-              <i class="material-icons">event</i>
-              <span>Tuesdays, 7:00 PM</span>
-            </div>
-          </div>
-          <div class="card-action">
-            <a href="group_detail.html" class="btn waves-effect waves-light">Join Group</a>
-          </div>
-        </div>
-      </div>
+      {% endif %}
     </div>
     
     <!-- Mobile floating action button -->
     <div class="fixed-action-btn hide-on-med-and-up">
-      <a href="create_group.html" class="btn-floating btn-large blue pulse">
+      <a href="{% url 'create_group' %}" class="btn-floating btn-large blue pulse">
         <i class="large material-icons">add</i>
       </a>
     </div>

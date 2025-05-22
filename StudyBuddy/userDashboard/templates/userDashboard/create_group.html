@@ -137,29 +137,29 @@
         <div class="nav-wrapper container">
           <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
           <ul class="right hide-on-med-and-down">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li class="active"><a href="create_group.html">Create Group</a></li>
-            <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
               <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li>
+            </a></li> {% endcomment %}
           </ul>
           
           <!-- User dropdown -->
-          <ul id="user-dropdown" class="dropdown-content">
-            <li><a href="profile.html"><i class="material-icons">person</i>Profile</a></li>
-            <li><a href="#"><i class="material-icons">settings</i>Settings</a></li>
+          {% comment %} <ul id="user-dropdown" class="dropdown-content">
+            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul>
+            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
+          </ul> {% endcomment %}
           
           <!-- Mobile navigation -->
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li class="active"><a href="create_group.html">Create Group</a></li>
-            <li><a href="profile.html">My Profile</a></li>
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
       </nav>
@@ -172,11 +172,25 @@
         <div class="form-card card">
           <h1 class="page-title center-align">Create a Study Group</h1>
           
-          <form>
+          <!-- Form to create a new group -->
+          <form method="POST" action="{% url 'create_group' %}">
+            {% csrf_token %}
+            
+            <!-- Display any messages -->
+            {% if messages %}
+            <div class="messages-container">
+              {% for message in messages %}
+              <div class="card-panel {% if message.tags %}{{ message.tags }}{% endif %}">
+                <span>{{ message }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+            
             <!-- Group Title -->
             <div class="input-field">
               <i class="material-icons prefix">title</i>
-              <input id="group_title" type="text" class="validate" required aria-required="true">
+              <input id="group_title" name="group_title" type="text" class="validate" required aria-required="true">
               <label for="group_title">Group Title</label>
               <span class="helper-text">Enter a descriptive title for your study group</span>
             </div>
@@ -184,16 +198,11 @@
             <!-- Subject Selection -->
             <div class="input-field">
               <i class="material-icons prefix">school</i>
-              <select id="subject" required aria-required="true">
+              <select id="subject" name="subject" required aria-required="true">
                 <option value="" disabled selected>Choose a subject</option>
-                <option value="mathematics">Mathematics</option>
-                <option value="physics">Physics</option>
-                <option value="chemistry">Chemistry</option>
-                <option value="biology">Biology</option>
-                <option value="computer_science">Computer Science</option>
-                <option value="history">History</option>
-                <option value="english">English Literature</option>
-                <option value="psychology">Psychology</option>
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                {% endfor %}
               </select>
               <label for="subject">Subject</label>
             </div>
@@ -201,7 +210,7 @@
             <!-- Description -->
             <div class="input-field">
               <i class="material-icons prefix">description</i>
-              <textarea id="description" class="materialize-textarea"></textarea>
+              <textarea id="description" name="description" class="materialize-textarea"></textarea>
               <label for="description">Group Description</label>
               <span class="helper-text">Describe what you'll be studying and your goals</span>
             </div>
@@ -211,14 +220,14 @@
               <div class="col s12 m6">
                 <div class="input-field">
                   <i class="material-icons prefix">event</i>
-                  <input id="meeting_date" type="text" class="datepicker" required aria-required="true">
+                  <input id="meeting_date" name="meeting_date" type="text" class="datepicker" required aria-required="true">
                   <label for="meeting_date">Meeting Date</label>
                 </div>
               </div>
               <div class="col s12 m6">
                 <div class="input-field">
                   <i class="material-icons prefix">access_time</i>
-                  <input id="meeting_time" type="text" class="timepicker" required aria-required="true">
+                  <input id="meeting_time" name="meeting_time" type="text" class="timepicker" required aria-required="true">
                   <label for="meeting_time">Meeting Time</label>
                 </div>
               </div>
@@ -227,7 +236,7 @@
             <!-- Maximum Members -->
             <div class="input-field">
               <i class="material-icons prefix">group</i>
-              <input id="max_members" type="number" min="2" max="20" value="8" required aria-required="true">
+              <input id="max_members" name="max_members" type="number" min="2" max="20" value="8" required aria-required="true">
               <label for="max_members">Maximum Members</label>
               <span class="helper-text">Between 2 and 20 members</span>
             </div>
@@ -235,7 +244,7 @@
             <!-- Meeting Location -->
             <div class="input-field">
               <i class="material-icons prefix">location_on</i>
-              <input id="location" type="text">
+              <input id="location" name="location" type="text">
               <label for="location">Meeting Location (Optional)</label>
               <span class="helper-text">Online or physical location</span>
             </div>
@@ -261,5 +270,45 @@
       </div>
     </div>
   </footer>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize dropdowns
+      var dropdowns = document.querySelectorAll('.dropdown-trigger');
+      M.Dropdown.init(dropdowns, {
+        coverTrigger: false,
+        constrainWidth: false
+      });
+      
+      // Initialize sidenav
+      var sidenav = document.querySelectorAll('.sidenav');
+      M.Sidenav.init(sidenav);
+      
+      // Initialize select elements
+      var selects = document.querySelectorAll('select');
+      M.FormSelect.init(selects);
+      
+      // Initialize datepicker
+      var datepickers = document.querySelectorAll('.datepicker');
+      M.Datepicker.init(datepickers, {
+        format: 'mm/dd/yyyy',
+        minDate: new Date(),
+        defaultDate: new Date(),
+        setDefaultDate: true,
+        autoClose: true
+      });
+      
+      // Initialize timepicker
+      var timepickers = document.querySelectorAll('.timepicker');
+      M.Timepicker.init(timepickers, {
+        defaultTime: '6:00 PM',
+        twelveHour: true,
+        autoClose: true
+      });
+    });
+  </script>
 </body>
 </html>

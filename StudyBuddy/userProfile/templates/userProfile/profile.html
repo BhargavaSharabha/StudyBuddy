@@ -210,29 +210,29 @@
         <div class="nav-wrapper container">
           <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
           <ul class="right hide-on-med-and-down">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
               <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li>
+            </a></li> {% endcomment %}
           </ul>
           
           <!-- User dropdown -->
-          <ul id="user-dropdown" class="dropdown-content">
-            <li class="active"><a href="profile.html"><i class="material-icons">person</i>Profile</a></li>
-            <li><a href="#"><i class="material-icons">settings</i>Settings</a></li>
+          {% comment %} <ul id="user-dropdown" class="dropdown-content">
+            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul>
+            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
+          </ul> {% endcomment %}
           
           <!-- Mobile navigation -->
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li class="active"><a href="profile.html">My Profile</a></li>
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
       </nav>
@@ -249,12 +249,13 @@
               <i class="material-icons">account_circle</i>
             </div>
             <div class="profile-info">
-              <h1 class="page-title">Jane Doe</h1>
-              <p>jane.doe@example.com</p>
+              <h1 class="page-title">{{ user.get_full_name|default:user.username }}</h1>
+              <p>{{ user.email }}</p>
             </div>
           </div>
           
-          <form>
+          <form method="POST" action="{% url 'profile' %}">
+            {% csrf_token %}
             <!-- Basic Information Section -->
             <div class="form-section">
               <h2 class="section-title">Basic Information</h2>
@@ -262,22 +263,24 @@
               <div class="row">
                 <div class="col s12 m6">
                   <div class="input-field">
-                    <input id="display_name" type="text" value="Jane Doe">
-                    <label for="display_name">Display Name</label>
+                    <input id="display_name" name="display_name" type="text" value="{{ user.get_full_name|default:user.username }}">
+                    <label for="display_name" class="{% if user.get_full_name %}active{% endif %}">Display Name</label>
                   </div>
                 </div>
                 <div class="col s12 m6">
                   <div class="input-field">
-                    <input id="email" type="email" value="jane.doe@example.com" disabled>
-                    <label for="email">Email</label>
+                    <input id="email" type="email" value="{{ user.email }}" disabled>
+                    <label for="email" class="active">Email</label>
                   </div>
                 </div>
               </div>
               
+              <!-- Bio field commented out as it's not yet in the model
               <div class="input-field">
-                <textarea id="bio" class="materialize-textarea">Computer Science student at State University, interested in web development and data science.</textarea>
-                <label for="bio">Bio</label>
+                <textarea id="bio" name="bio" class="materialize-textarea">{{ profile.bio }}</textarea>
+                <label for="bio" class="{% if profile.bio %}active{% endif %}">Bio</label>
               </div>
+              -->
             </div>
             
             <!-- Subjects Section -->
@@ -286,17 +289,14 @@
               <p class="helper-text">Select the subjects you are interested in studying</p>
               
               <div class="subject-chips" role="group" aria-label="Select your subjects">
-                <div class="chip selected" tabindex="0" role="checkbox" aria-checked="true">Computer Science</div>
-                <div class="chip selected" tabindex="0" role="checkbox" aria-checked="true">Mathematics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Physics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Chemistry</div>
-                <div class="chip selected" tabindex="0" role="checkbox" aria-checked="true">Data Science</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Biology</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">History</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">English Literature</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Psychology</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Economics</div>
-                <div class="chip" tabindex="0" role="checkbox" aria-checked="false">Business Studies</div>
+                {% for subject in subjects %}
+                <div class="chip {% if subject.id in selected_subject_ids %}selected{% endif %}" 
+                     tabindex="0" role="checkbox" aria-checked="{% if subject.id in selected_subject_ids %}true{% else %}false{% endif %}">
+                  {{ subject.name }}
+                  <input type="checkbox" name="selected_subjects[]" value="{{ subject.id }}" 
+                         {% if subject.id in selected_subject_ids %}checked{% endif %} style="display: none;">
+                </div>
+                {% endfor %}
               </div>
             </div>
             
@@ -306,19 +306,19 @@
               
               <p>
                 <label>
-                  <input type="checkbox" class="filled-in" checked />
+                  <input type="checkbox" name="notify_on_join" class="filled-in" {% if profile.notify_on_join %}checked{% endif %} />
                   <span>Email me when someone joins my study group</span>
                 </label>
               </p>
               <p>
                 <label>
-                  <input type="checkbox" class="filled-in" checked />
+                  <input type="checkbox" name="notify_on_message" class="filled-in" {% if profile.notify_on_message %}checked{% endif %} />
                   <span>Email me when there's a new message in my group</span>
                 </label>
               </p>
               <p>
                 <label>
-                  <input type="checkbox" class="filled-in" />
+                  <input type="checkbox" name="notify_on_new_group" class="filled-in" {% if profile.notify_on_new_group %}checked{% endif %} />
                   <span>Email me about new study groups I might be interested in</span>
                 </label>
               </p>
@@ -344,5 +344,51 @@
       </div>
     </div>
   </footer>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize dropdowns
+      var dropdowns = document.querySelectorAll('.dropdown-trigger');
+      M.Dropdown.init(dropdowns, {
+        coverTrigger: false,
+        constrainWidth: false
+      });
+      
+      // Initialize sidenav
+      var sidenav = document.querySelectorAll('.sidenav');
+      M.Sidenav.init(sidenav);
+      
+      // Initialize select elements
+      var selects = document.querySelectorAll('select');
+      M.FormSelect.init(selects);
+      
+      // Handle subject chip selection
+      var chips = document.querySelectorAll('.subject-chips .chip');
+      chips.forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          // Toggle selected class
+          this.classList.toggle('selected');
+          
+          // Update hidden checkbox
+          var checkbox = this.querySelector('input[type="checkbox"]');
+          checkbox.checked = this.classList.contains('selected');
+          
+          // Update ARIA attributes
+          this.setAttribute('aria-checked', this.classList.contains('selected'));
+        });
+        
+        // Keyboard accessibility
+        chip.addEventListener('keydown', function(e) {
+          if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            chip.click();
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>

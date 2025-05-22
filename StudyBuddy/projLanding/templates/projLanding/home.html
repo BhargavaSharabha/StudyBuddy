@@ -141,15 +141,15 @@
         <div class="nav-wrapper container">
           <a id="logo-container" href="#" class="brand-logo">Study Buddy</a>
           <ul class="right hide-on-med-and-down">
-            <li><a href="login.html">Login</a></li>
-            <li><a href="register.html" class="btn white blue-text text-darken-2">Sign Up</a></li>
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'register' %}" class="btn white blue-text text-darken-2">Sign Up</a></li>
           </ul>
           
           <!-- Mobile navigation -->
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
-            <li><a href="login.html">Login</a></li>
-            <li><a href="register.html">Sign Up</a></li>
+            <li><a href="{% url 'login' %}">Login</a></li>
+            <li><a href="{% url 'register' %}">Sign Up</a></li>
           </ul>
         </div>
       </nav>
@@ -162,7 +162,7 @@
       <div class="container center-align">
         <h1>Study Better Together</h1>
         <p>Find study groups, stay organized, and ace your classes with Study Buddy</p>
-        <a href="register.html" class="btn-large waves-effect waves-light pulse">Get Started</a>
+        <a href="{% url 'register' %}" class="btn-large waves-effect waves-light pulse">Get Started</a>
       </div>
     </section>
 

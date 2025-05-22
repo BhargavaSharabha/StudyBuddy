@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculus Study Group - Study Buddy</title>
+  <title>{{ group.title }} - Study Buddy</title>
   
   <!-- Materialize CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -213,31 +213,31 @@
     <div class="navbar-fixed">
       <nav class="blue" role="navigation" aria-label="Main navigation">
         <div class="nav-wrapper container">
-          <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
+          <a id="logo-container" href="{% url 'dashboard' %}" class="brand-logo">Study Buddy</a>
           <ul class="right hide-on-med-and-down">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
+            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
               <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li>
+            </a></li> {% endcomment %}
           </ul>
           
           <!-- User dropdown -->
-          <ul id="user-dropdown" class="dropdown-content">
-            <li><a href="profile.html"><i class="material-icons">person</i>Profile</a></li>
-            <li><a href="#"><i class="material-icons">settings</i>Settings</a></li>
+          {% comment %} <ul id="user-dropdown" class="dropdown-content">
+            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul>
+            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
+          </ul> {% endcomment %}
           
           <!-- Mobile navigation -->
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
-            <li><a href="dashboard.html">Find Groups</a></li>
-            <li><a href="create_group.html">Create Group</a></li>
-            <li><a href="profile.html">My Profile</a></li>
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Logout</a></li>
+            <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
+            <li><a href="{% url 'create_group' %}">Create Group</a></li>
+            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li><a href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
       </nav>
@@ -245,35 +245,56 @@
   </header>
 
   <main id="main-content" class="container">
+    {% if group %}
     <!-- Group Header -->
     <section class="group-header">
-      <h1 class="group-title">Calculus Study Group</h1>
-      <span class="group-subject">Mathematics</span>
+      <h1 class="group-title">{{ group.title }}</h1>
+      <span class="group-subject">{{ group.subject.name }}</span>
       
       <div class="group-meta">
         <div class="meta-item">
           <i class="material-icons tiny">group</i>
-          <span>4/8 members</span>
+          <span>{{ group.current_member_count }}/{{ group.max_members }} members</span>
         </div>
         <div class="meta-item">
           <i class="material-icons tiny">event</i>
-          <span>Tuesdays, 4:00 PM</span>
+          <span>{{ group.meeting_date|date:"l" }}s, {{ group.meeting_time|time:"g:i A" }}</span>
         </div>
+        {% if group.meeting_location %}
         <div class="meta-item">
           <i class="material-icons tiny">location_on</i>
-          <span>Library, Room 204</span>
+          <span>{{ group.meeting_location }}</span>
         </div>
+        {% endif %}
       </div>
       
       <p class="group-description">
-        A study group focused on Calculus I and II topics. We'll be working through practice problems, preparing for exams, and discussing challenging concepts together.
+        {{ group.description }}
       </p>
       
       <div class="group-actions">
-        <a href="#" class="btn waves-effect waves-light">
-          <i class="material-icons left">group_add</i>
-          Join Group
+        {% if not is_member %}
+        <form method="POST" action="{% url 'join_group' group.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn waves-effect waves-light">
+            <i class="material-icons left">group_add</i>
+            Join Group
+          </button>
+        </form>
+        {% elif is_host %}
+        <a href="{% url 'edit_group' group.id %}" class="btn waves-effect waves-light">
+          <i class="material-icons left">edit</i>
+          Edit Group
         </a>
+        {% else %}
+        <form method="POST" action="{% url 'leave_group' group.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn waves-effect waves-light red">
+            <i class="material-icons left">exit_to_app</i>
+            Leave Group
+          </button>
+        </form>
+        {% endif %}
       </div>
     </section>
     
@@ -282,10 +303,12 @@
       <h2 class="section-title">Members</h2>
       
       <div class="members-list">
-        <span class="member-chip">Sarah J. (Host)</span>
-        <span class="member-chip">David L.</span>
-        <span class="member-chip">Emma W.</span>
-        <span class="member-chip">Michael T.</span>
+        {% for membership in group.groupmembership_set.all %}
+        <span class="member-chip">
+          {{ membership.user.get_full_name|default:membership.user.username }}
+          {% if membership.user == group.host %}(Host){% endif %}
+        </span>
+        {% endfor %}
       </div>
     </section>
     
@@ -294,51 +317,46 @@
       <h2 class="section-title">Group Discussion</h2>
       
       <div class="messages-container">
-        <!-- Message 1 -->
-        <div class="message">
-          <div class="message-header">
-            <span class="message-user">Sarah J.</span>
-            <span class="message-time">Yesterday at 3:45 PM</span>
+        {% if messages_list %}
+          {% for message in messages_list %}
+          <div class="message">
+            <div class="message-header">
+              <span class="message-user">{{ message.user.get_full_name|default:message.user.username }}</span>
+              <span class="message-time">{{ message.timestamp|date:"F j, Y" }} at {{ message.timestamp|time:"g:i A" }}</span>
+            </div>
+            <p class="message-content">
+              {{ message.content }}
+            </p>
           </div>
-          <p class="message-content">
-            Welcome everyone to the Calculus study group! I'm excited to work with all of you this semester. For our first meeting, please bring your textbooks and any questions you have about the first three chapters.
-          </p>
-        </div>
-        
-        <!-- Message 2 -->
-        <div class="message">
-          <div class="message-header">
-            <span class="message-user">David L.</span>
-            <span class="message-time">Yesterday at 5:20 PM</span>
-          </div>
-          <p class="message-content">
-            Thanks for setting this up, Sarah! I've been struggling with the integration by parts section. Would it be possible to focus on that during our first meeting?
-          </p>
-        </div>
-        
-        <!-- Message 3 -->
-        <div class="message">
-          <div class="message-header">
-            <span class="message-user">Emma W.</span>
-            <span class="message-time">Today at 9:15 AM</span>
-          </div>
-          <p class="message-content">
-            I'm also having trouble with that section. I found some good practice problems online that we could work through together. I'll bring them to the meeting!
-          </p>
-        </div>
+          {% endfor %}
+        {% else %}
+          <p class="center-align">No messages yet. Be the first to post!</p>
+        {% endif %}
       </div>
       
       <!-- Comment Form -->
-      <form class="comment-form">
+      {% if is_member or is_host %}
+      <form class="comment-form" method="POST" action="{% url 'group_details' group.id %}">
+        {% csrf_token %}
         <div class="input-field">
-          <textarea id="message" class="materialize-textarea" placeholder="Type your message here..." rows="3" required aria-required="true"></textarea>
+          <textarea id="message" name="message" class="materialize-textarea" placeholder="Type your message here..." rows="3" required aria-required="true"></textarea>
         </div>
         <button type="submit" class="btn waves-effect waves-light">
           Post Message
           <i class="material-icons right">send</i>
         </button>
       </form>
+      {% else %}
+      <div class="card-panel blue lighten-4">
+        <span>You must join this group to participate in discussions.</span>
+      </div>
+      {% endif %}
     </section>
+    {% else %}
+    <div class="card-panel">
+      <p class="center-align">Study group not found. <a href="{% url 'dashboard' %}">Return to dashboard</a></p>
+    </div>
+    {% endif %}
   </main>
 
   <!-- Footer -->
@@ -349,5 +367,16 @@
       </div>
     </div>
   </footer>
+
+  <!-- Materialize JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize mobile nav
+      var elems = document.querySelectorAll('.sidenav');
+      M.Sidenav.init(elems);
+    });
+  </script>
 </body>
 </html>
