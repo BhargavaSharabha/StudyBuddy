@@ -326,10 +326,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Contact
 
-- Developer: [Your Name](mailto:your.email@example.com)
-- GitHub: [yourusername](https://github.com/yourusername)
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-
----
-
-*Note: Please replace the screenshot paths with actual screenshots of your application before publishing this README.* 
+- Developer: [Bhargava Sharabha](mailto:bhargavasharabha@gmail.com)
+- GitHub: [BhargavaShrabha](https://github.com/BhargavaSharabha)
+- LinkedIn: [bhargavasharabhapagidimarri](https://www.linkedin.com/in/bhargavasharabhapagidimarri/)
