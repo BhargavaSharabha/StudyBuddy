@@ -217,7 +217,7 @@ StudyBuddy/
 ## Screenshots
 
 ### Landing Page
-![Landing Page](screenshots/landing.png)
+![Landing Page](screenshots/banner.png)
 *The landing page introduces users to StudyBuddy features and benefits.*
 
 ### User Dashboard
