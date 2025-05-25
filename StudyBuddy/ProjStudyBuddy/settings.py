@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@7z&5=u)9ut62w&9fa8!#ww^$34dv74q767w+wdt&+ix_-$ta4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['5b27-129-119-235-16.ngrok-free.app', '127.0.0.1']
 
 
 # Application definition
@@ -141,3 +141,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Password reset settings
 PASSWORD_RESET_TIMEOUT = 86400  # 1 day in seconds
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://5b27-129-119-235-16.ngrok-free.app',
+]

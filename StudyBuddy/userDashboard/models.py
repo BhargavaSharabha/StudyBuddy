@@ -65,3 +65,24 @@ class GroupMessage(models.Model):
     
     class Meta:
         ordering = ['timestamp']
+
+class GroupJoinRequest(models.Model):
+    """Model for handling group join requests requiring admin approval"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('declined', 'Declined'),
+    )
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='join_requests')
+    group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='join_requests')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    responded_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('user', 'group')
+        ordering = ['-requested_at']
+        
+    def __str__(self):
+        return f"{self.user.username}'s request to join {self.group.title} ({self.get_status_display()})"

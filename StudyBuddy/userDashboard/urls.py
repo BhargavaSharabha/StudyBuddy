@@ -9,4 +9,6 @@ urlpatterns = [
     path('join_group/<int:group_id>', views.join_group, name='join_group'),
     path('leave_group/<int:group_id>', views.leave_group, name='leave_group'),
     path('edit_group/<int:group_id>', views.edit_group, name='edit_group'),
+    path('approve_request/<int:request_id>', views.approve_request, name='approve_request'),
+    path('decline_request/<int:request_id>', views.decline_request, name='decline_request'),
 ]

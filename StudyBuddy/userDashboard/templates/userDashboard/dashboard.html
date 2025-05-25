@@ -69,19 +69,6 @@
       margin-bottom: 0;
     }
 
-    .filter-bar select {
-      background-color: transparent;
-      border: none;
-      border-bottom: 1px solid #9e9e9e;
-      border-radius: 0;
-      height: 3rem;
-    }
-
-    .filter-bar select:focus {
-      outline: none;
-      border-bottom: 1px solid #2196F3;
-    }
-
     /* Group card */
     .group-card {
       border-radius: 8px;
@@ -124,34 +111,6 @@
       border-top: 1px solid #eeeeee;
     }
 
-    /* Hero banner */
-    .dashboard-hero {
-      background-color: #2196F3;
-      padding: 30px;
-      border-radius: 8px;
-      color: white;
-      margin-bottom: 20px;
-    }
-
-    .dashboard-hero h2 {
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .dashboard-hero p {
-      opacity: 0.9;
-      margin-bottom: 20px;
-    }
-
-    .dashboard-hero .btn {
-      background-color: white;
-      color: #2196F3;
-    }
-
-    .dashboard-hero .btn:hover {
-      background-color: #f5f5f5;
-    }
-
     /* Floating action button */
     .fixed-action-btn {
       bottom: 30px;
@@ -161,26 +120,6 @@
     /* Footer */
     .page-footer {
       background-color: #2196F3;
-    }
-
-    /* Accessibility */
-    a:focus, button:focus, select:focus {
-      outline: 2px solid #2196F3;
-      outline-offset: 2px;
-    }
-
-    .skip-link {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      background: #2196F3;
-      color: white;
-      padding: 8px;
-      z-index: 1000;
-    }
-
-    .skip-link:focus {
-      top: 0;
     }
 
     /* Responsive adjustments */
@@ -200,34 +139,23 @@
   </style>
 </head>
 <body>
-  <!-- Skip link for accessibility -->
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-
+  {% load dashboard_extras %}
+  
   <!-- Navbar -->
   <header>
     <div class="navbar-fixed">
-      <nav class="blue" role="navigation" aria-label="Main navigation">
+      <nav class="blue darken-1">
         <div class="nav-wrapper container">
-          <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
+          <a href="{% url 'dashboard' %}" class="brand-logo">Study Buddy</a>
+          <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul class="right hide-on-med-and-down">
             <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
             <li><a href="{% url 'create_group' %}">Create Group</a></li>
             <li><a href="{% url 'profile' %}">My Profile</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
-            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
-              <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li> {% endcomment %}
           </ul>
           
-          <!-- User dropdown -->
-          {% comment %} <ul id="user-dropdown" class="dropdown-content">
-            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
-            <li class="divider"></li>
-            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul> {% endcomment %}
-          
           <!-- Mobile navigation -->
-          <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
             <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
             <li><a href="{% url 'create_group' %}">Create Group</a></li>
@@ -240,49 +168,51 @@
   </header>
 
   <main id="main-content" class="container">
-    <!-- Dashboard hero -->
-    <div class="dashboard-hero">
-      <div class="row">
-        <div class="col s12 m8">
-          <h2>Find Your Study Group</h2>
-          <p>Browse and join study groups or create your own to connect with fellow students</p>
-        </div>
-        <div class="col s12 m4 hide-on-small-only" style="text-align: right;">
-          <a href="{% url 'create_group' %}" class="btn waves-effect waves-light">Create Group</a>
+    <div class="row">
+      <div class="col s12">
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">Find Study Groups</span>
+            
+            <form method="GET" action="{% url 'dashboard' %}" class="filter-form">
+              <div class="row">
+                <div class="input-field col s12 m5">
+                  <select name="subject" id="subject-filter">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject|add:0 == subject.id %}selected{% endif %}>
+                      {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <label for="subject-filter">Filter by Subject</label>
+                </div>
+                
+                <div class="input-field col s12 m5">
+                  <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Search by title...">
+                  <label for="search">Search</label>
+                </div>
+                
+                <div class="col s12 m2 filter-buttons">
+                  <button type="submit" class="btn waves-effect waves-light">
+                    <i class="material-icons left">search</i>
+                    Filter
+                  </button>
+                  
+                  {% if selected_subject or search_query %}
+                  <a href="{% url 'dashboard' %}" class="btn-flat waves-effect">
+                    <i class="material-icons left">clear</i>
+                    Clear
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- Filter bar -->
-    <div class="filter-bar">
-      <div class="row">
-        <div class="col s12 m6">
-          <form action="{% url 'dashboard' %}" method="GET" id="filter-form">
-            <div class="input-field">
-              <select id="subject-filter" name="subject" aria-label="Filter by subject" onchange="document.getElementById('filter-form').submit()">
-                <option value="" {% if not selected_subject %}selected{% endif %}>All subjects</option>
-                {% for subject in subjects %}
-                <option value="{{ subject.id }}" {% if selected_subject == subject.id|stringformat:"s" %}selected{% endif %}>
-                  {{ subject.name }}
-                </option>
-                {% endfor %}
-              </select>
-              <label for="subject-filter">Subject</label>
-            </div>
-          </form>
-        </div>
-        <div class="col s12 m6">
-          <form action="{% url 'dashboard' %}" method="GET">
-            <div class="input-field">
-              <input id="search" name="search" type="text" placeholder="Search groups..." value="{{ search_query|default:'' }}">
-              <label for="search">Search</label>
-              <button type="submit" class="btn waves-effect waves-light" style="display: none;">Search</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
+    
     <!-- Group cards -->
     <div class="row">
       {% if study_groups %}
@@ -300,6 +230,10 @@
                 <div class="group-detail">
                   <i class="material-icons">group</i>
                   <span>{{ group.current_member_count }}/{{ group.max_members }} members</span>
+                  
+                  {% if group.host == request.user and group.id in pending_requests_by_group %}
+                    <span class="new badge blue" data-badge-caption="requests">{{ pending_requests_by_group|get_item:group.id }}</span>
+                  {% endif %}
                 </div>
                 
                 <div class="group-detail">
@@ -311,6 +245,8 @@
                 <a href="{% url 'group_details' group_id=group.id %}" class="btn waves-effect waves-light">
                   {% if request.user in group.members.all %}
                     View Group
+                  {% elif group.id in user_pending_requests %}
+                    <i class="material-icons left">hourglass_empty</i> Request Pending
                   {% else %}
                     Join Group
                   {% endif %}
@@ -329,20 +265,34 @@
     </div>
     
     <!-- Mobile floating action button -->
-    <div class="fixed-action-btn hide-on-med-and-up">
-      <a href="{% url 'create_group' %}" class="btn-floating btn-large blue pulse">
-        <i class="large material-icons">add</i>
+    <div class="fixed-action-btn">
+      <a href="{% url 'create_group' %}" class="btn-floating btn-large waves-effect waves-light blue">
+        <i class="material-icons">add</i>
       </a>
     </div>
   </main>
 
   <!-- Footer -->
-  <footer class="page-footer">
-    <div class="footer-copyright">
-      <div class="container center-align">
-        &copy; 2023 Study Buddy. All rights reserved.
+  <footer class="page-footer blue darken-2">
+    <div class="footer-copyright blue darken-3">
+      <div class="container">
+        © 2023 Study Buddy
       </div>
     </div>
   </footer>
+
+  <!-- JavaScript dependencies -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize select
+      var elems = document.querySelectorAll('select');
+      var instances = M.FormSelect.init(elems);
+      
+      // Initialize sidenav
+      var sidenavElems = document.querySelectorAll('.sidenav');
+      var sidenavInstances = M.Sidenav.init(sidenavElems);
+    });
+  </script>
 </body>
 </html>
