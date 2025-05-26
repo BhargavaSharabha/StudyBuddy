@@ -18,6 +18,7 @@ class Profile(models.Model):
     """User profile with additional information"""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     subjects = models.ManyToManyField(Subject, blank=True, related_name='interested_users')
+    bio = models.TextField(blank=True, help_text="Tell others about yourself and your study goals")
     profile_completed = models.BooleanField(default=False)
     
     # Notification settings

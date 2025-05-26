@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Subject, Profile
+from userDashboard.models import GroupMembership
 
 # Create your views here.
 
@@ -16,6 +17,9 @@ def profile(request):
     # Get the user's currently selected subjects
     selected_subject_ids = list(user_profile.subjects.values_list('id', flat=True))
     
+    # Get user's group memberships
+    memberships = GroupMembership.objects.filter(user=user, is_active=True).select_related('group', 'group__subject')
+    
     if request.method == 'POST':
         # Update display name
         display_name = request.POST.get('display_name')
@@ -24,9 +28,10 @@ def profile(request):
             user.first_name = display_name
             user.save()
         
-        # Update bio - we need to add this field to the Profile model
-        # This is just a placeholder as the bio field doesn't exist yet
-        # bio = request.POST.get('bio')
+        # Update bio
+        bio = request.POST.get('bio')
+        if bio is not None:
+            user_profile.bio = bio
         
         # Update selected subjects
         selected_subject_ids = request.POST.getlist('selected_subjects[]')
@@ -56,7 +61,8 @@ def profile(request):
         'user': user,
         'subjects': subjects,
         'selected_subject_ids': selected_subject_ids,
-        'profile': user_profile
+        'profile': user_profile,
+        'memberships': memberships
     }
     
     return render(request, 'userProfile/profile.html', context)

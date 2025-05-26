@@ -30,12 +30,12 @@
     }
 
     .btn, .btn-large {
-      background-color: #2196F3;
+      background-color: #009688;
       border-radius: 4px;
     }
 
     .btn:hover, .btn-large:hover {
-      background-color: #1976D2;
+      background-color: #00796B;
     }
 
     /* Navbar */
@@ -52,7 +52,7 @@
     .page-title {
       font-weight: 600;
       margin-bottom: 1.5rem;
-      color: #2196F3;
+      color: #009688;
     }
 
     /* Filter bar */
@@ -89,7 +89,7 @@
     .group-card .card-title {
       font-weight: 600;
       margin-bottom: 10px;
-      color: #2196F3;
+      color: #009688;
       font-size: 1.3rem;
     }
 
@@ -119,7 +119,7 @@
 
     /* Footer */
     .page-footer {
-      background-color: #2196F3;
+      background-color: #009688;
     }
 
     /* Responsive adjustments */
@@ -144,7 +144,7 @@
   <!-- Navbar -->
   <header>
     <div class="navbar-fixed">
-      <nav class="blue darken-1">
+      <nav class="teal darken-1">
         <div class="nav-wrapper container">
           <a href="{% url 'dashboard' %}" class="brand-logo">Study Buddy</a>
           <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
@@ -273,25 +273,21 @@
   </main>
 
   <!-- Footer -->
-  <footer class="page-footer blue darken-2">
-    <div class="footer-copyright blue darken-3">
-      <div class="container">
-        © 2023 Study Buddy
+  <footer class="page-footer">
+    <div class="footer-copyright">
+      <div class="container center-align">
+        &copy; 2023 Study Buddy. All rights reserved.
       </div>
     </div>
   </footer>
 
-  <!-- JavaScript dependencies -->
+  <!-- JavaScript at end of body for optimized loading -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize select
-      var elems = document.querySelectorAll('select');
-      var instances = M.FormSelect.init(elems);
-      
-      // Initialize sidenav
-      var sidenavElems = document.querySelectorAll('.sidenav');
-      var sidenavInstances = M.Sidenav.init(sidenavElems);
+      // Initialize Materialize components
+      M.AutoInit();
     });
   </script>
 </body>

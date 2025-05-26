@@ -191,28 +191,42 @@ def join_group(request, group_id):
         elif group.is_full:
             messages.error(request, "This group is already full.")
         else:
-            # Check if there's an existing declined request
+            # Check if there's any existing request (declined or approved)
             existing_request = GroupJoinRequest.objects.filter(
                 user=request.user, 
-                group=group, 
-                status='declined'
+                group=group
             ).first()
             
             if existing_request:
-                # Update the existing declined request to pending
+                # Update the existing request to pending (regardless of previous status)
                 existing_request.status = 'pending'
                 existing_request.requested_at = timezone.now()
                 existing_request.responded_at = None
                 existing_request.save()
-                messages.success(request, f"Your request to join {group.title} has been resubmitted to the group host!")
+                messages.success(request, f"Your request to join {group.title} has been submitted to the group host!")
             else:
-                # Create a new join request
-                GroupJoinRequest.objects.create(
-                    user=request.user,
-                    group=group,
-                    status='pending'
-                )
-                messages.success(request, f"Your request to join {group.title} has been sent to the group host!")
+                # Create a new join request with error handling
+                try:
+                    GroupJoinRequest.objects.create(
+                        user=request.user,
+                        group=group,
+                        status='pending'
+                    )
+                    messages.success(request, f"Your request to join {group.title} has been sent to the group host!")
+                except Exception as e:
+                    # If there's still a unique constraint error, try to find and update the existing request
+                    existing_request = GroupJoinRequest.objects.filter(
+                        user=request.user, 
+                        group=group
+                    ).first()
+                    if existing_request:
+                        existing_request.status = 'pending'
+                        existing_request.requested_at = timezone.now()
+                        existing_request.responded_at = None
+                        existing_request.save()
+                        messages.success(request, f"Your request to join {group.title} has been submitted to the group host!")
+                    else:
+                        messages.error(request, "An error occurred while processing your request. Please try again.")
     except StudyGroup.DoesNotExist:
         messages.error(request, "Study group not found.")
     

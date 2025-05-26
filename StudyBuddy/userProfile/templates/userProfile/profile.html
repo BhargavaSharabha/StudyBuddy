@@ -30,12 +30,12 @@
     }
 
     .btn, .btn-large {
-      background-color: #2196F3;
+      background-color: #009688;
       border-radius: 4px;
     }
 
     .btn:hover, .btn-large:hover {
-      background-color: #1976D2;
+      background-color: #00796B;
     }
 
     /* Navbar */
@@ -52,7 +52,7 @@
     .page-title {
       font-weight: 600;
       margin-bottom: 0.5rem;
-      color: #2196F3;
+      color: #009688;
     }
 
     .page-subtitle {
@@ -86,7 +86,7 @@
 
     .profile-avatar i {
       font-size: 40px;
-      color: #2196F3;
+      color: #009688;
     }
 
     .profile-info h1 {
@@ -128,7 +128,7 @@
     }
 
     .chip.selected {
-      background-color: #2196F3;
+      background-color: #009688;
       color: white;
     }
 
@@ -137,7 +137,7 @@
     }
 
     .chip.selected:hover {
-      background-color: #1976D2;
+      background-color: #00796B;
     }
 
     /* Form fields */
@@ -148,14 +148,14 @@
     .input-field input[type=text]:focus + label,
     .input-field input[type=email]:focus + label,
     .input-field textarea:focus + label {
-      color: #2196F3 !important;
+      color: #009688 !important;
     }
 
     .input-field input[type=text]:focus,
     .input-field input[type=email]:focus,
     .input-field textarea:focus {
-      border-bottom: 1px solid #2196F3 !important;
-      box-shadow: 0 1px 0 0 #2196F3 !important;
+      border-bottom: 1px solid #009688 !important;
+      box-shadow: 0 1px 0 0 #009688 !important;
     }
 
     /* Form sections */
@@ -171,24 +171,24 @@
 
     /* Footer */
     .page-footer {
-      background-color: #2196F3;
+      background-color: #009688;
     }
 
     /* Accessibility */
     a:focus, button:focus, input:focus, textarea:focus {
-      outline: 2px solid #2196F3;
+      outline: 2px solid #009688;
       outline-offset: 2px;
     }
 
     .chip:focus {
-      outline: 2px solid #2196F3;
+      outline: 2px solid #009688;
     }
 
     .skip-link {
       position: absolute;
       top: -40px;
       left: 0;
-      background: #2196F3;
+      background: #009688;
       color: white;
       padding: 8px;
       z-index: 1000;
@@ -206,32 +206,22 @@
   <!-- Navbar -->
   <header>
     <div class="navbar-fixed">
-      <nav class="blue" role="navigation" aria-label="Main navigation">
+      <nav class="teal darken-1">
         <div class="nav-wrapper container">
-          <a id="logo-container" href="index.html" class="brand-logo">Study Buddy</a>
+          <a href="{% url 'dashboard' %}" class="brand-logo">Study Buddy</a>
+          <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul class="right hide-on-med-and-down">
             <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
             <li><a href="{% url 'create_group' %}">Create Group</a></li>
-            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li class="active"><a href="{% url 'profile' %}">My Profile</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
-            {% comment %} <li><a href="#" class="dropdown-trigger" data-target="user-dropdown">
-              <i class="material-icons left">account_circle</i>My Account<i class="material-icons right">arrow_drop_down</i>
-            </a></li> {% endcomment %}
           </ul>
           
-          <!-- User dropdown -->
-          {% comment %} <ul id="user-dropdown" class="dropdown-content">
-            <li><a href="{% url 'profile' %}"><i class="material-icons">person</i>Profile</a></li>
-            <li class="divider"></li>
-            <li><a href="{% url 'logout' %}"><i class="material-icons">exit_to_app</i>Logout</a></li>
-          </ul> {% endcomment %}
-          
           <!-- Mobile navigation -->
-          <a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
           <ul id="mobile-nav" class="sidenav">
             <li><a href="{% url 'dashboard' %}">Find Groups</a></li>
             <li><a href="{% url 'create_group' %}">Create Group</a></li>
-            <li><a href="{% url 'profile' %}">My Profile</a></li>
+            <li class="active"><a href="{% url 'profile' %}">My Profile</a></li>
             <li><a href="{% url 'logout' %}">Logout</a></li>
           </ul>
         </div>
@@ -239,105 +229,148 @@
     </div>
   </header>
 
+  <!-- Main content -->
   <main id="main-content" class="container">
+    <!-- Profile Card -->
     <div class="row">
       <div class="col s12">
         <div class="profile-card card">
-          <!-- Profile Header -->
           <div class="profile-header">
             <div class="profile-avatar">
-              <i class="material-icons">account_circle</i>
+              <i class="material-icons">person</i>
             </div>
             <div class="profile-info">
-              <h1 class="page-title">{{ user.get_full_name|default:user.username }}</h1>
+              <h1 class="page-title">{{ user.username }}</h1>
               <p>{{ user.email }}</p>
             </div>
           </div>
           
-          <form method="POST" action="{% url 'profile' %}">
+          <!-- Success Message -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="card-panel {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+          
+          <!-- Profile Edit Form -->
+          <form method="post">
             {% csrf_token %}
-            <!-- Basic Information Section -->
+            
+            <!-- Personal Information Section -->
             <div class="form-section">
-              <h2 class="section-title">Basic Information</h2>
+              <h2 class="section-title">Personal Information</h2>
               
               <div class="row">
-                <div class="col s12 m6">
-                  <div class="input-field">
-                    <input id="display_name" name="display_name" type="text" value="{{ user.get_full_name|default:user.username }}">
-                    <label for="display_name" class="{% if user.get_full_name %}active{% endif %}">Display Name</label>
-                  </div>
+                <div class="input-field col s12 m6">
+                  <input id="first_name" name="first_name" type="text" value="{{ user.first_name }}">
+                  <label for="first_name" {% if user.first_name %}class="active"{% endif %}>First Name</label>
                 </div>
-                <div class="col s12 m6">
-                  <div class="input-field">
-                    <input id="email" type="email" value="{{ user.email }}" disabled>
-                    <label for="email" class="active">Email</label>
-                  </div>
+                
+                <div class="input-field col s12 m6">
+                  <input id="last_name" name="last_name" type="text" value="{{ user.last_name }}">
+                  <label for="last_name" {% if user.last_name %}class="active"{% endif %}>Last Name</label>
                 </div>
               </div>
               
-              <!-- Bio field commented out as it's not yet in the model
-              <div class="input-field">
-                <textarea id="bio" name="bio" class="materialize-textarea">{{ profile.bio }}</textarea>
-                <label for="bio" class="{% if profile.bio %}active{% endif %}">Bio</label>
-              </div>
-              -->
-            </div>
-            
-            <!-- Subjects Section -->
-            <div class="form-section">
-              <h2 class="section-title">My Subjects</h2>
-              <p class="helper-text">Select the subjects you are interested in studying</p>
-              
-              <div class="subject-chips" role="group" aria-label="Select your subjects">
-                {% for subject in subjects %}
-                <div class="chip {% if subject.id in selected_subject_ids %}selected{% endif %}" 
-                     tabindex="0" role="checkbox" aria-checked="{% if subject.id in selected_subject_ids %}true{% else %}false{% endif %}">
-                  {{ subject.name }}
-                  <input type="checkbox" name="selected_subjects[]" value="{{ subject.id }}" 
-                         {% if subject.id in selected_subject_ids %}checked{% endif %} style="display: none;">
+              <div class="row">
+                <div class="input-field col s12">
+                  <input id="email" name="email" type="email" value="{{ user.email }}" disabled>
+                  <label for="email" class="active">Email Address</label>
+                  <span class="helper-text">Email cannot be changed</span>
                 </div>
-                {% endfor %}
               </div>
             </div>
             
-            <!-- Notification Preferences -->
+            <!-- Study Preferences Section -->
             <div class="form-section">
-              <h2 class="section-title">Notification Preferences</h2>
+              <h2 class="section-title">Study Preferences</h2>
               
-              <p>
-                <label>
-                  <input type="checkbox" name="notify_on_join" class="filled-in" {% if profile.notify_on_join %}checked{% endif %} />
-                  <span>Email me when someone joins my study group</span>
-                </label>
-              </p>
-              <p>
-                <label>
-                  <input type="checkbox" name="notify_on_message" class="filled-in" {% if profile.notify_on_message %}checked{% endif %} />
-                  <span>Email me when there's a new message in my group</span>
-                </label>
-              </p>
-              <p>
-                <label>
-                  <input type="checkbox" name="notify_on_new_group" class="filled-in" {% if profile.notify_on_new_group %}checked{% endif %} />
-                  <span>Email me about new study groups I might be interested in</span>
-                </label>
-              </p>
+              <div class="row">
+                <div class="col s12">
+                  <p>Select subjects you're interested in:</p>
+                  <div class="subject-chips">
+                    {% for subject in subjects %}
+                    <div class="chip {% if subject in profile.subjects.all %}selected{% endif %}" onclick="toggleSubject(this, {{ subject.id }})">
+                      {{ subject.name }}
+                    </div>
+                    {% endfor %}
+                    <input type="hidden" id="selected_subjects" name="selected_subjects" value="{{ selected_subjects_ids }}">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="input-field col s12">
+                  <textarea id="bio" name="bio" class="materialize-textarea">{{ profile.bio }}</textarea>
+                  <label for="bio" {% if profile.bio %}class="active"{% endif %}>Bio</label>
+                  <span class="helper-text">Tell others about yourself and your study goals</span>
+                </div>
+              </div>
             </div>
             
             <!-- Submit Button -->
             <div class="submit-section">
-              <button type="submit" class="btn btn-large waves-effect waves-light">
+              <button type="submit" class="btn waves-effect waves-light">
                 Save Changes
+                <i class="material-icons right">save</i>
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
+    
+    <!-- My Groups Section -->
+    <div class="row">
+      <div class="col s12">
+        <h2 class="page-title" style="margin-top: 2rem;">My Study Groups</h2>
+        <p class="page-subtitle">Groups you've joined or created</p>
+        
+        {% if memberships %}
+          <div class="row">
+            {% for membership in memberships %}
+              <div class="col s12 m6 l4">
+                <div class="card hoverable">
+                  <div class="card-content">
+                    <span class="card-title">{{ membership.group.title }}</span>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                      <i class="material-icons tiny" style="margin-right: 5px; color: #757575;">school</i>
+                      <span>{{ membership.group.subject.name }}</span>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                      <i class="material-icons tiny" style="margin-right: 5px; color: #757575;">group</i>
+                      <span>{{ membership.group.members.count }} member{{ membership.group.members.count|pluralize }}</span>
+                    </div>
+                    
+                    {% if membership.group.host == user %}
+                      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <i class="material-icons tiny" style="margin-right: 5px; color: #757575;">star</i>
+                        <span>You are the host</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="card-action">
+                    <a href="{% url 'group_details' membership.group.id %}" class="btn">View Group</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="card-panel">
+            <p>You haven't joined any study groups yet. <a href="{% url 'dashboard' %}">Find groups to join!</a></p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
   </main>
 
   <!-- Footer -->
-  <footer class="page-footer">
+  <footer class="page-footer teal">
     <div class="footer-copyright">
       <div class="container center-align">
         &copy; 2023 Study Buddy. All rights reserved.
@@ -350,45 +383,39 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize dropdowns
-      var dropdowns = document.querySelectorAll('.dropdown-trigger');
-      M.Dropdown.init(dropdowns, {
-        coverTrigger: false,
-        constrainWidth: false
-      });
-      
       // Initialize sidenav
-      var sidenav = document.querySelectorAll('.sidenav');
-      M.Sidenav.init(sidenav);
+      var elems = document.querySelectorAll('.sidenav');
+      var instances = M.Sidenav.init(elems);
       
-      // Initialize select elements
-      var selects = document.querySelectorAll('select');
-      M.FormSelect.init(selects);
-      
-      // Handle subject chip selection
-      var chips = document.querySelectorAll('.subject-chips .chip');
-      chips.forEach(function(chip) {
-        chip.addEventListener('click', function() {
-          // Toggle selected class
-          this.classList.toggle('selected');
-          
-          // Update hidden checkbox
-          var checkbox = this.querySelector('input[type="checkbox"]');
-          checkbox.checked = this.classList.contains('selected');
-          
-          // Update ARIA attributes
-          this.setAttribute('aria-checked', this.classList.contains('selected'));
-        });
-        
-        // Keyboard accessibility
-        chip.addEventListener('keydown', function(e) {
-          if (e.code === 'Space' || e.code === 'Enter') {
-            e.preventDefault();
-            chip.click();
-          }
-        });
-      });
+      // Initialize textarea
+      var textareas = document.querySelectorAll('.materialize-textarea');
+      M.textareaAutoResize(textareas);
     });
+    
+    // Handle subject chip selection
+    function toggleSubject(chipElement, subjectId) {
+      chipElement.classList.toggle('selected');
+      
+      // Update hidden input with selected subject IDs
+      var selectedSubjectsInput = document.getElementById('selected_subjects');
+      var currentSelections = selectedSubjectsInput.value ? selectedSubjectsInput.value.split(',') : [];
+      
+      if (chipElement.classList.contains('selected')) {
+        // Add subject ID if not already in the list
+        if (!currentSelections.includes(subjectId.toString())) {
+          currentSelections.push(subjectId.toString());
+        }
+      } else {
+        // Remove subject ID
+        var index = currentSelections.indexOf(subjectId.toString());
+        if (index > -1) {
+          currentSelections.splice(index, 1);
+        }
+      }
+      
+      selectedSubjectsInput.value = currentSelections.join(',');
+    }
   </script>
 </body>
+</html>
 </html>
