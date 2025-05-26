@@ -396,7 +396,7 @@
       
       <!-- Comment Form -->
       {% if is_member or is_host %}
-      <form class="comment-form" method="POST" action="{% url 'group_details' group.id %}">
+      <form class="comment-form" method="POST" action="{% url 'group_details' group_id=group.id slug=group.slug %}">
         {% csrf_token %}
         <div class="input-field">
           <textarea id="message" name="message" class="materialize-textarea" placeholder="Type your message here..." rows="3" required aria-required="true"></textarea>

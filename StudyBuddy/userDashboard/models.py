@@ -3,6 +3,7 @@ from django.conf import settings
 from userProfile.models import Subject
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
 
 class StudyGroup(models.Model):
     """Model representing a study group"""
@@ -15,14 +16,23 @@ class StudyGroup(models.Model):
     meeting_date = models.DateField()
     meeting_time = models.TimeField()
     meeting_location = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(max_length=120, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
         return self.title
     
+    def save(self, *args, **kwargs):
+        # Always regenerate slug from current title
+        if self.title:
+            self.slug = slugify(self.title)
+        else:
+            self.slug = 'untitled'
+        super().save(*args, **kwargs)
+    
     def get_absolute_url(self):
-        return reverse('group_details', args=[str(self.id)])
+        return reverse('group_details', args=[str(self.id), self.slug])
     
     @property
     def current_member_count(self):

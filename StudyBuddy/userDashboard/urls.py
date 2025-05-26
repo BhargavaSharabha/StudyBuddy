@@ -4,8 +4,7 @@ from . import views
 urlpatterns = [
     path('dashboard', views.dashboard, name='dashboard'),
     path('create_group', views.create_group, name='create_group'),
-    path('group_details/<int:group_id>', views.group_details, name='group_details'),
-    path('group_details', views.group_details, name='group_details_default'),
+    path('group_details/<int:group_id>/<slug:slug>', views.group_details, name='group_details'),
     path('join_group/<int:group_id>', views.join_group, name='join_group'),
     path('leave_group/<int:group_id>', views.leave_group, name='leave_group'),
     path('edit_group/<int:group_id>', views.edit_group, name='edit_group'),

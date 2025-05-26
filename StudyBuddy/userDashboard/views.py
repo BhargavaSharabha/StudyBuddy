@@ -116,7 +116,7 @@ def create_group(request):
             )
             
             messages.success(request, f"Study group '{title}' has been created successfully!")
-            return redirect('group_details', group_id=study_group.id)
+            return redirect('group_details', group_id=study_group.id, slug=study_group.slug)
         
         except Subject.DoesNotExist:
             messages.error(request, "Selected subject doesn't exist. Please try again.")
@@ -128,58 +128,62 @@ def create_group(request):
     return render(request, 'userDashboard/create_group.html', {'subjects': subjects})
 
 @login_required
-def group_details(request, group_id=None):
-    if group_id:
-        try:
-            group = StudyGroup.objects.get(id=group_id)
-            
-            # Check if user is a member of this group
-            is_member = group.members.filter(id=request.user.id).exists()
-            is_host = group.host == request.user
-            
-            # Check if user has a pending join request
-            has_pending_request = GroupJoinRequest.objects.filter(
-                user=request.user, 
-                group=group, 
+def group_details(request, group_id, slug):
+    try:
+        group = StudyGroup.objects.get(id=group_id)
+        
+        # Check if slug matches current title slug and redirect if not
+        from django.utils.text import slugify
+        current_slug = slugify(group.title) if group.title else 'untitled'
+        if slug != current_slug:
+            return redirect('group_details', group_id=group.id, slug=current_slug)
+        
+        # Check if user is a member of this group
+        is_member = group.members.filter(id=request.user.id).exists()
+        is_host = group.host == request.user
+        
+        # Check if user has a pending join request
+        has_pending_request = GroupJoinRequest.objects.filter(
+            user=request.user, 
+            group=group, 
+            status='pending'
+        ).exists()
+        
+        # Get pending join requests if user is host
+        pending_requests = []
+        if is_host:
+            pending_requests = GroupJoinRequest.objects.filter(
+                group=group,
                 status='pending'
-            ).exists()
-            
-            # Get pending join requests if user is host
-            pending_requests = []
-            if is_host:
-                pending_requests = GroupJoinRequest.objects.filter(
+            ).select_related('user')
+        
+        # Get all messages for this group
+        messages_list = group.messages.all().order_by('timestamp')
+        
+        # Handle message posting
+        if request.method == 'POST' and (is_member or is_host):
+            message_content = request.POST.get('message')
+            if message_content:
+                # Create the message
+                GroupMessage.objects.create(
                     group=group,
-                    status='pending'
-                ).select_related('user')
-            
-            # Get all messages for this group
-            messages_list = group.messages.all().order_by('timestamp')
-            
-            # Handle message posting
-            if request.method == 'POST' and (is_member or is_host):
-                message_content = request.POST.get('message')
-                if message_content:
-                    # Create the message
-                    GroupMessage.objects.create(
-                        group=group,
-                        user=request.user,
-                        content=message_content
-                    )
-                    return redirect('group_details', group_id=group.id)
-            
-            context = {
-                'group': group,
-                'is_member': is_member,
-                'is_host': is_host,
-                'has_pending_request': has_pending_request,
-                'pending_requests': pending_requests,
-                'messages_list': messages_list
-            }
-            return render(request, 'userDashboard/group_detail.html', context)
-        except StudyGroup.DoesNotExist:
-            messages.error(request, "Study group not found.")
-            return redirect('dashboard')
-    return render(request, 'userDashboard/group_detail.html')
+                    user=request.user,
+                    content=message_content
+                )
+                return redirect('group_details', group_id=group.id, slug=group.slug)
+        
+        context = {
+            'group': group,
+            'is_member': is_member,
+            'is_host': is_host,
+            'has_pending_request': has_pending_request,
+            'pending_requests': pending_requests,
+            'messages_list': messages_list
+        }
+        return render(request, 'userDashboard/group_detail.html', context)
+    except StudyGroup.DoesNotExist:
+        messages.error(request, "Study group not found.")
+        return redirect('dashboard')
 
 @login_required
 def join_group(request, group_id):
@@ -233,8 +237,9 @@ def join_group(request, group_id):
                         messages.error(request, "An error occurred while processing your request. Please try again.")
     except StudyGroup.DoesNotExist:
         messages.error(request, "Study group not found.")
+        return redirect('dashboard')
     
-    return redirect('group_details', group_id=group_id)
+    return redirect('group_details', group_id=group.id, slug=group.slug)
 
 @login_required
 def approve_request(request, request_id):
@@ -243,7 +248,7 @@ def approve_request(request, request_id):
     # Security check - only the host can approve requests
     if request.user != join_request.group.host:
         messages.error(request, "Only the group host can approve join requests.")
-        return redirect('group_details', group_id=join_request.group.id)
+        return redirect('group_details', group_id=join_request.group.id, slug=join_request.group.slug)
     
     # Check if the group is full
     if join_request.group.is_full:
@@ -251,7 +256,7 @@ def approve_request(request, request_id):
         join_request.status = 'declined'
         join_request.responded_at = timezone.now()
         join_request.save()
-        return redirect('group_details', group_id=join_request.group.id)
+        return redirect('group_details', group_id=join_request.group.id, slug=join_request.group.slug)
     
     # Approve the request and add the user to the group
     join_request.status = 'approved'
@@ -265,7 +270,7 @@ def approve_request(request, request_id):
     )
     
     messages.success(request, f"You have approved {join_request.user.username}'s request to join your group.")
-    return redirect('group_details', group_id=join_request.group.id)
+    return redirect('group_details', group_id=join_request.group.id, slug=join_request.group.slug)
 
 @login_required
 def decline_request(request, request_id):
@@ -274,7 +279,7 @@ def decline_request(request, request_id):
     # Security check - only the host can decline requests
     if request.user != join_request.group.host:
         messages.error(request, "Only the group host can decline join requests.")
-        return redirect('group_details', group_id=join_request.group.id)
+        return redirect('group_details', group_id=join_request.group.id, slug=join_request.group.slug)
     
     # Decline the request
     join_request.status = 'declined'
@@ -282,7 +287,7 @@ def decline_request(request, request_id):
     join_request.save()
     
     messages.success(request, f"You have declined {join_request.user.username}'s request to join your group.")
-    return redirect('group_details', group_id=join_request.group.id)
+    return redirect('group_details', group_id=join_request.group.id, slug=join_request.group.slug)
 
 @login_required
 def leave_group(request, group_id):
@@ -317,7 +322,7 @@ def edit_group(request, group_id):
         # Check if the user is the host
         if group.host != request.user:
             messages.error(request, "Only the host can edit the group details.")
-            return redirect('group_details', group_id=group_id)
+            return redirect('group_details', group_id=group_id, slug=group.slug)
         
         if request.method == 'POST':
             # Get form data
@@ -387,7 +392,7 @@ def edit_group(request, group_id):
                 group.save()
                 
                 messages.success(request, f"Study group '{title}' has been updated successfully!")
-                return redirect('group_details', group_id=group.id)
+                return redirect('group_details', group_id=group.id, slug=group.slug)
             
             except Subject.DoesNotExist:
                 messages.error(request, "Selected subject doesn't exist. Please try again.")

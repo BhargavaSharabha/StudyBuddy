@@ -242,7 +242,7 @@
                 </div>
               </div>
               <div class="card-action">
-                <a href="{% url 'group_details' group_id=group.id %}" class="btn waves-effect waves-light">
+                <a href="{% url 'group_details' group_id=group.id slug=group.slug %}" class="btn waves-effect waves-light">
                   {% if request.user in group.members.all %}
                     View Group
                   {% elif group.id in user_pending_requests %}

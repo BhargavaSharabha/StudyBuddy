@@ -246,7 +246,7 @@
             
             <!-- Submit Button -->
             <div class="submit-section">
-              <a href="{% url 'group_details' group.id %}" class="btn waves-effect waves-light grey">
+              <a href="{% url 'group_details' group_id=group.id slug=group.slug %}" class="btn waves-effect waves-light grey">
                 Cancel
                 <i class="material-icons right">cancel</i>
               </a>

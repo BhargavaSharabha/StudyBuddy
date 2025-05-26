@@ -354,7 +354,7 @@
                     {% endif %}
                   </div>
                   <div class="card-action">
-                    <a href="{% url 'group_details' membership.group.id %}" class="btn">View Group</a>
+                    <a href="{% url 'group_details' group_id=membership.group.id slug=membership.group.slug %}" class="btn">View Group</a>
                   </div>
                 </div>
               </div>
