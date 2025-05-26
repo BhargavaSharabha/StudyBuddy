@@ -14,12 +14,16 @@ def dashboard(request):
     study_groups = StudyGroup.objects.all().order_by('-created_at')
     
     # Get filter parameters from GET request
-    subject_filter = request.GET.get('subject')
-    search_query = request.GET.get('search')
+    subject_filter = request.GET.get('subject', '').strip()
+    search_query = request.GET.get('search', '').strip()
     
     # Apply filters if they exist
     if subject_filter:
-        study_groups = study_groups.filter(subject_id=subject_filter)
+        try:
+            study_groups = study_groups.filter(subject_id=int(subject_filter))
+        except (ValueError, TypeError):
+            # Invalid subject_filter, ignore it
+            pass
     
     if search_query:
         study_groups = study_groups.filter(title__icontains=search_query)

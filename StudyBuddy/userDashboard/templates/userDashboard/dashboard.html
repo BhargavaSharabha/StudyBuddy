@@ -180,7 +180,7 @@
                   <select name="subject" id="subject-filter">
                     <option value="">All Subjects</option>
                     {% for subject in subjects %}
-                    <option value="{{ subject.id }}" {% if selected_subject|add:0 == subject.id %}selected{% endif %}>
+                    <option value="{{ subject.id }}" {% if selected_subject and selected_subject|add:0 == subject.id %}selected{% endif %}>
                       {{ subject.name }}
                     </option>
                     {% endfor %}
@@ -189,7 +189,7 @@
                 </div>
                 
                 <div class="input-field col s12 m5">
-                  <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Search by title...">
+                  <input type="text" id="search" name="search" value="{{ search_query|default:'' }}" placeholder="Search by title...">
                   <label for="search">Search</label>
                 </div>
                 
@@ -266,7 +266,7 @@
     
     <!-- Mobile floating action button -->
     <div class="fixed-action-btn">
-      <a href="{% url 'create_group' %}" class="btn-floating btn-large waves-effect waves-light blue">
+      <a href="{% url 'create_group' %}" class="btn-floating btn-large waves-effect waves-light teal">
         <i class="material-icons">add</i>
       </a>
     </div>
@@ -288,6 +288,10 @@
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize Materialize components
       M.AutoInit();
+      
+      // Explicitly initialize FormSelect for select elements
+      var selectElems = document.querySelectorAll('select');
+      M.FormSelect.init(selectElems);
     });
   </script>
 </body>
