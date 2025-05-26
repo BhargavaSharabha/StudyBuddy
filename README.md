@@ -13,30 +13,39 @@ StudyBuddy is a web-based collaborative learning platform that connects students
 ## Key Features
 
 ### User Authentication System
-- Secure registration and login functionality
-- User profile creation and management
+- Secure registration and login functionality with custom user model
+- Comprehensive user profile creation and management
 - Password reset capabilities
+- Profile completion tracking and setup wizard
 
 ### Study Group Management
 - Create study groups with detailed information (subject, schedule, location)
-- Browse available study groups with filtering by subject
-- Membership request and approval system for group joining
-- Group editing capabilities for hosts
+- Browse available study groups with advanced filtering by subject and search
+- Robust membership request and approval system for group joining
+- Group editing capabilities for hosts with capacity validation
+- **Enhanced Join Group System** - Handles all edge cases including rejoining after leaving
 
 ### Interactive Dashboards
-- User-specific dashboard showing joined groups
-- Group-specific dashboards with member information
-- Real-time status updates on group activities
+- User-specific dashboard showing joined groups with membership status
+- Group-specific dashboards with comprehensive member information
+- Real-time status updates on group activities and pending requests
+- **Improved Profile Dashboard** - Displays user's study groups with detailed information
 
 ### Real-time Group Discussions
-- In-group messaging system
-- Chronological message display with user attribution
-- Seamless message posting interface
+- In-group messaging system with chronological ordering
+- Message display with user attribution and timestamps
+- Seamless message posting interface for members and hosts
 
 ### User Profile System
-- Subject interest selection
-- Profile customization options
-- User activity tracking
+- Subject interest selection with interactive chip interface
+- **Enhanced Profile Management** - Bio field, notification preferences
+- User activity tracking and membership history
+- Profile customization with study preferences
+
+### Administrative Tools
+- **Database Cleanup Commands** - Automated cleanup of redundant join requests
+- Comprehensive admin interface for all models
+- Data integrity validation and maintenance tools
 
 ## Technologies Used
 
@@ -45,11 +54,12 @@ StudyBuddy is a web-based collaborative learning platform that connects students
 - **Django 5.2** - Web framework for rapid development
 - **SQLite** - Database for development (can be migrated to PostgreSQL for production)
 - **Django ORM** - Object-Relational Mapping for database interactions
+- **Custom User Model** - Extended authentication system
 
 ### Frontend
 - **HTML5/CSS3** - Structure and styling
 - **Materialize CSS** - Modern and responsive UI components
-- **JavaScript** - Client-side interactivity
+- **JavaScript** - Client-side interactivity and form handling
 - **Material Icons** - Visual iconography
 
 ### Security Features
@@ -57,11 +67,13 @@ StudyBuddy is a web-based collaborative learning platform that connects students
 - **Password Hashing** - Secure password storage
 - **Django Security Middleware** - Protection against common vulnerabilities
 - **Permission-Based Access Control** - Role-based access to features
+- **Data Validation** - Comprehensive input validation and sanitization
 
 ### DevOps & Deployment
 - **Git/GitHub** - Version control
 - **Virtual Environment** - Dependency isolation
 - **Requirements.txt** - Dependency management
+- **Django Management Commands** - Custom administrative tools
 
 ## Technical Implementation Details
 
@@ -69,51 +81,57 @@ StudyBuddy is a web-based collaborative learning platform that connects students
 
 The application utilizes a relational database with the following key models:
 
-- **User Model** (Extended Django User)
-  - Authentication fields
-  - Profile information
-  - Relationships to groups and subjects
+- **CustomUser Model** (Extended Django User)
+  - Email-based authentication
+  - Enhanced user management
+  - Profile relationships
+
+- **Profile Model**
+  - User preferences and settings
+  - Subject interests (Many-to-Many)
+  - Bio and notification preferences
+  - Profile completion tracking
 
 - **StudyGroup Model**
-  - Title, description
-  - Subject (Foreign Key)
-  - Host (User Foreign Key)
+  - Title, description, and meeting details
+  - Subject categorization (Foreign Key)
+  - Host management (User Foreign Key)
   - Members (Many-to-Many through GroupMembership)
-  - Meeting details (date, time, location)
-  - Member limit
+  - Capacity management and validation
 
 - **GroupMembership Model**
-  - Tracks membership relationships
-  - Stores membership dates
-  - Membership status
+  - Tracks active membership relationships
+  - Stores membership dates and status
+  - Handles membership lifecycle
 
 - **GroupJoinRequest Model**
-  - Implements approval workflow
+  - **Enhanced Approval Workflow** - Handles all request states
   - Tracks request status (pending, approved, declined)
   - Timestamps for requests and responses
+  - **Unique Constraint Handling** - Prevents duplicate requests
 
 - **GroupMessage Model**
-  - Message content storage
-  - Relationship to groups and users
-  - Timestamp information
+  - Message content storage with timestamps
+  - User attribution and group relationships
+  - Chronological ordering system
 
 - **Subject Model**
-  - Subject categories
+  - Academic subject categories
   - Relationships to users and groups
 
 ### Core Functionality Implementation
 
-#### Group Membership Approval System
-The system implements a sophisticated membership request and approval workflow:
+#### Enhanced Group Membership System
+The system implements a robust membership request and approval workflow with comprehensive error handling:
 
 ```python
-# Simplified code sample of the join request system
+# Updated join request system with enhanced error handling
 @login_required
 def join_group(request, group_id):
     try:
         group = StudyGroup.objects.get(id=group_id)
         
-        # Check constraints (membership, pending requests, capacity)
+        # Comprehensive constraint checking
         if group.members.filter(id=request.user.id).exists():
             messages.warning(request, "You are already a member of this group.")
         elif GroupJoinRequest.objects.filter(user=request.user, group=group, status='pending').exists():
@@ -121,27 +139,39 @@ def join_group(request, group_id):
         elif group.is_full:
             messages.error(request, "This group is already full.")
         else:
-            # Handle existing declined requests or create new
+            # Handle ANY existing request (approved, declined, etc.)
             existing_request = GroupJoinRequest.objects.filter(
                 user=request.user, 
-                group=group, 
-                status='declined'
+                group=group
             ).first()
             
             if existing_request:
-                # Update existing request
+                # Update existing request to pending (handles rejoining scenarios)
                 existing_request.status = 'pending'
                 existing_request.requested_at = timezone.now()
                 existing_request.responded_at = None
                 existing_request.save()
+                messages.success(request, f"Your request to join {group.title} has been submitted!")
             else:
-                # Create new request
-                GroupJoinRequest.objects.create(
-                    user=request.user,
-                    group=group,
-                    status='pending'
-                )
-            messages.success(request, f"Your request to join {group.title} has been sent!")
+                # Create new request with comprehensive error handling
+                try:
+                    GroupJoinRequest.objects.create(
+                        user=request.user,
+                        group=group,
+                        status='pending'
+                    )
+                    messages.success(request, f"Your request to join {group.title} has been sent!")
+                except Exception as e:
+                    # Fallback handling for edge cases
+                    existing_request = GroupJoinRequest.objects.filter(
+                        user=request.user, group=group
+                    ).first()
+                    if existing_request:
+                        existing_request.status = 'pending'
+                        existing_request.save()
+                        messages.success(request, "Your request has been submitted!")
+                    else:
+                        messages.error(request, "An error occurred. Please try again.")
     except StudyGroup.DoesNotExist:
         messages.error(request, "Study group not found.")
     
@@ -152,20 +182,23 @@ def join_group(request, group_id):
 The messaging system implements real-time updates with chronological ordering:
 
 ```python
-# Simplified code sample for the messaging system
+# Enhanced messaging system with proper permissions
 @login_required
 def group_details(request, group_id=None):
     if group_id:
         group = StudyGroup.objects.get(id=group_id)
         
-        # Check permissions
+        # Enhanced permission checking
         is_member = group.members.filter(id=request.user.id).exists()
         is_host = group.host == request.user
+        has_pending_request = GroupJoinRequest.objects.filter(
+            user=request.user, group=group, status='pending'
+        ).exists()
         
         # Get messages with proper ordering
         messages_list = group.messages.all().order_by('timestamp')
         
-        # Handle message posting
+        # Handle message posting with validation
         if request.method == 'POST' and (is_member or is_host):
             message_content = request.POST.get('message')
             if message_content:
@@ -177,27 +210,76 @@ def group_details(request, group_id=None):
                 return redirect('group_details', group_id=group.id)
 ```
 
-#### Capacity Management System
-The platform ensures group capacity limitations are enforced both in the UI and backend:
+#### Enhanced Profile Management
+The profile system now includes comprehensive user preference management:
 
 ```python
-# Capacity validation in group editing
+# Enhanced profile view with membership display
 @login_required
-def edit_group(request, group_id):
-    # ... other code ...
+def profile(request):
+    user = request.user
+    user_profile = user.profile
     
-    # Ensure max_members isn't below current count
-    current_member_count = group.current_member_count
-    try:
-        max_members = int(max_members)
-        if max_members < current_member_count:
-            messages.error(request, f"Maximum members cannot be less than the current member count ({current_member_count}).")
-            return render(request, 'userDashboard/edit_group.html', {
-                'group': group,
-                'subjects': subjects
-            })
-    except ValueError:
-        messages.error(request, "Invalid maximum members value.")
+    # Get user's group memberships for display
+    memberships = GroupMembership.objects.filter(
+        user=user, is_active=True
+    ).select_related('group', 'group__subject')
+    
+    # Handle profile updates including bio and preferences
+    if request.method == 'POST':
+        # Update bio field
+        bio = request.POST.get('bio')
+        if bio is not None:
+            user_profile.bio = bio
+        
+        # Update subject preferences
+        selected_subject_ids = request.POST.getlist('selected_subjects[]')
+        if selected_subject_ids:
+            user_profile.subjects.clear()
+            for subject_id in selected_subject_ids:
+                try:
+                    subject = Subject.objects.get(id=subject_id)
+                    user_profile.subjects.add(subject)
+                except Subject.DoesNotExist:
+                    continue
+        
+        user_profile.save()
+        messages.success(request, "Your profile has been updated!")
+    
+    context = {
+        'user': user,
+        'profile': user_profile,
+        'memberships': memberships,  # Now displays user's groups
+        'subjects': Subject.objects.all().order_by('name')
+    }
+    
+    return render(request, 'userProfile/profile.html', context)
+```
+
+#### Database Maintenance Tools
+Custom management commands for maintaining data integrity:
+
+```python
+# Database cleanup command for join requests
+class Command(BaseCommand):
+    help = 'Clean up duplicate or problematic join request records'
+    
+    def handle(self, *args, **options):
+        # Find and remove redundant approved requests
+        redundant_approved = []
+        approved_requests = GroupJoinRequest.objects.filter(status='approved')
+        
+        for request in approved_requests:
+            if GroupMembership.objects.filter(
+                user=request.user, group=request.group, is_active=True
+            ).exists():
+                redundant_approved.append(request)
+        
+        # Clean up duplicates and maintain data integrity
+        for request in redundant_approved:
+            request.delete()
+        
+        self.stdout.write(f'Cleaned up {len(redundant_approved)} redundant requests')
 ```
 
 ## Project Structure
@@ -205,14 +287,42 @@ def edit_group(request, group_id):
 ```
 StudyBuddy/
 ├── ProjStudyBuddy/           # Project configuration
-├── userAuth/                 # Authentication app
-├── userProfile/              # User profile management app
-├── userDashboard/            # Dashboard & group functionality app
+├── userAuth/                 # Custom authentication system
+├── userProfile/              # Enhanced user profile management
+├── userDashboard/            # Dashboard & group functionality
+│   ├── management/           # Custom management commands
+│   │   └── commands/         # Database maintenance tools
+│   ├── templates/            # Dashboard templates
+│   └── models.py             # Core group models
 ├── projLanding/              # Landing page app
 ├── manage.py                 # Django management script
 ├── requirements.txt          # Project dependencies
 └── db.sqlite3                # Development database
 ```
+
+## Recent Improvements
+
+### Version 2.1.0 - Enhanced Stability and User Experience
+
+#### 🔧 **Critical Bug Fixes**
+- **Fixed Join Group Unique Constraint Error** - Resolved database integrity issues when users rejoin groups
+- **Enhanced Error Handling** - Comprehensive fallback mechanisms for edge cases
+- **Profile Display Fix** - Corrected "My Study Groups" section to properly display user memberships
+
+#### ✨ **New Features**
+- **Database Cleanup Command** - `python manage.py cleanup_join_requests` for maintaining data integrity
+- **Enhanced Profile Management** - Added bio field and improved subject selection interface
+- **Improved User Feedback** - Better error messages and success notifications
+
+#### 🚀 **Performance Improvements**
+- **Optimized Database Queries** - Added `select_related()` for efficient data fetching
+- **Reduced N+1 Query Problems** - Improved relationship loading in templates
+- **Enhanced Data Validation** - Comprehensive input validation across all forms
+
+#### 🛡️ **Security Enhancements**
+- **Robust Permission Checking** - Enhanced access control for group operations
+- **Data Integrity Validation** - Prevents duplicate and inconsistent records
+- **Improved Error Handling** - Graceful handling of edge cases and exceptions
 
 ## Screenshots
 
@@ -236,9 +346,9 @@ StudyBuddy/
 ![Join Requests](screenshots/join_requests.png)
 *Group hosts can approve or decline join requests from the interface.*
 
-### User Profile
+### Enhanced User Profile
 ![User Profile](screenshots/profile.png)
-*Users can customize their profiles and select subjects of interest.*
+*Users can customize their profiles, add bio, and view their study groups.*
 
 ## Installation and Setup
 
@@ -269,21 +379,40 @@ StudyBuddy/
    python manage.py createsuperuser
    ```
 
-6. Run the development server:
+6. **(Optional) Clean up database:**
+   ```bash
+   python manage.py cleanup_join_requests
+   ```
+
+7. Run the development server:
    ```bash
    python manage.py runserver
    ```
 
-7. Access the application at http://127.0.0.1:8000/
+8. Access the application at http://127.0.0.1:8000/
+
+## Maintenance Commands
+
+### Database Cleanup
+```bash
+# Check what would be cleaned up (dry run)
+python manage.py cleanup_join_requests --dry-run
+
+# Perform actual cleanup
+python manage.py cleanup_join_requests
+```
+
+This command removes redundant approved join requests and resolves duplicate entries that could cause database integrity issues.
 
 ## Future Roadmap
 
-### Short-term Enhancements
-- Advanced search functionality with more filters
-- Email notifications for group activities
-- Calendar integration for study sessions
+### Short-term Enhancements (v2.2.0)
+- **Email Notifications** - Automated notifications for group activities
+- **Advanced Search** - Enhanced filtering with multiple criteria
+- **Calendar Integration** - Study session scheduling with calendar view
+- **Export Functionality** - Export group data and member lists
 
-### Medium-term Features
+### Medium-term Features (v3.0.0)
 - **File Sharing in Group Discussions**
   - Secure document uploading and downloading
   - Preview capabilities for common file formats
@@ -294,8 +423,15 @@ StudyBuddy/
   - Categorized study materials
   - Rating and commenting system
   - Search functionality for resources
+  - Integration with group discussions
 
-### Long-term Vision
+- **Enhanced Analytics**
+  - User engagement metrics
+  - Group activity analytics
+  - Study session tracking
+  - Performance insights
+
+### Long-term Vision (v4.0.0+)
 - **Video Conferencing for Study Groups**
   - Real-time video meetings integration
   - Screen sharing capabilities
@@ -306,26 +442,56 @@ StudyBuddy/
   - Native iOS and Android versions
   - Push notifications
   - Offline content access
+  - Synchronized data across devices
 
 - **AI Study Assistant**
   - Personalized learning recommendations
   - Study schedule optimization
   - Content summarization
+  - Intelligent group matching
 
-## Contribution Guidelines
+## Contributing
 
+We welcome contributions to StudyBuddy! Here's how you can help:
+
+### Development Setup
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
+3. Make your changes and test thoroughly
+4. Run the cleanup command to ensure database integrity
+5. Commit your changes: `git commit -m 'Add some feature'`
+6. Push to the branch: `git push origin feature-name`
+7. Submit a pull request
+
+### Contribution Guidelines
+- Follow Django best practices and PEP 8 style guidelines
+- Write comprehensive tests for new features
+- Update documentation for any new functionality
+- Ensure all existing tests pass before submitting
+- Include meaningful commit messages
+
+### Reporting Issues
+- Use the GitHub issue tracker
+- Provide detailed reproduction steps
+- Include system information and error logs
+- Check existing issues before creating new ones
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Acknowledgments
+
+- **Django Community** - For the excellent web framework
+- **Materialize CSS** - For the beautiful UI components
+- **Contributors** - Thanks to all who have contributed to this project
+
 ## Contact
 
-- Developer: [Bhargava Sharabha](mailto:bhargavasharabha@gmail.com)
-- GitHub: [BhargavaShrabha](https://github.com/BhargavaSharabha)
-- LinkedIn: [bhargavasharabhapagidimarri](https://www.linkedin.com/in/bhargavasharabhapagidimarri/)
+- **Developer**: [Bhargava Sharabha](mailto:bhargavasharabha@gmail.com)
+- **GitHub**: [BhargavaSharabha](https://github.com/BhargavaSharabha)
+- **LinkedIn**: [bhargavasharabhapagidimarri](https://www.linkedin.com/in/bhargavasharabhapagidimarri/)
+
+---
+
+**StudyBuddy** - *Connecting minds, building knowledge together* 🎓
