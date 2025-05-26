@@ -171,16 +171,7 @@
           <form method="POST" action="{% url 'edit_group' group.id %}">
             {% csrf_token %}
             
-            <!-- Display any messages -->
-            {% if messages %}
-            <div class="messages-container">
-              {% for message in messages %}
-              <div class="card-panel {% if message.tags %}{{ message.tags }}{% endif %}">
-                <span>{{ message }}</span>
-              </div>
-              {% endfor %}
-            </div>
-            {% endif %}
+            <!-- Messages will be displayed as toasts -->
             
             <!-- Group Title -->
             <div class="input-field">
@@ -269,6 +260,9 @@
       </div>
     </div>
   </footer>
+
+  <!-- Include toast messages -->
+  {% include 'includes/toast_messages.html' %}
 
   <!-- JavaScript dependencies -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>

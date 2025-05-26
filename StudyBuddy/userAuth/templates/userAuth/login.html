@@ -168,13 +168,7 @@
       </div>
       <h2 class="auth-title">Welcome Back</h2>
       
-      {% if messages %}
-      <ul class="messages" role="alert" aria-live="assertive">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
+      <!-- Messages will be displayed as toasts -->
 
       <form method="post">
         {% csrf_token %}
@@ -229,6 +223,9 @@
     </div>
   </main>
   
+  <!-- Include toast messages -->
+  {% include 'includes/toast_messages.html' %}
+
   <!-- Materialize JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
