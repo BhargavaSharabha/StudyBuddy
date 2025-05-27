@@ -1,0 +1,9 @@
+@echo off
+echo Starting StudyBuddy in Development Mode...
+echo Temporarily renaming .env file to avoid conflicts...
+if exist .env ren .env .env.backup
+set DJANGO_SETTINGS_MODULE=ProjStudyBuddy.settings.development
+python manage.py runserver
+echo Restoring .env file...
+if exist .env.backup ren .env.backup .env
+pause 

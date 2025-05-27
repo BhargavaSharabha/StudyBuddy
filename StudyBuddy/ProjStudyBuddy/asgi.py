@@ -11,6 +11,7 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProjStudyBuddy.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProjStudyBuddy.settings.production')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ProjStudyBuddy.settings.development')
 
 application = get_asgi_application()
