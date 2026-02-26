@@ -53,6 +53,9 @@ COPY . .
 RUN mkdir -p staticfiles media logs \
     && chown -R django:django /app
 
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chown django:django /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+
 # Switch to non-root user
 USER django
 
@@ -63,8 +66,8 @@ RUN python manage.py collectstatic --noinput --settings=ProjStudyBuddy.settings.
 EXPOSE 8000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=5 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/', timeout=10)" || exit 1
 
 # Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120", "ProjStudyBuddy.wsgi:application"] 
+CMD ["/app/entrypoint.sh"] 
